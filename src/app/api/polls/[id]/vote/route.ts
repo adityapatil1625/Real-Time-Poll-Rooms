@@ -4,7 +4,7 @@ import { prisma } from "@/lib/db";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-const COOLDOWN_MS = 5 * 60 * 1000; // 5 minutes between votes from same IP
+const COOLDOWN_MS = 30 * 1000; // 30 seconds between votes from same IP
 const MAX_VOTES_PER_IP = 10; // Max votes per IP per poll
 
 function getClientIp(request: Request) {

@@ -24,7 +24,7 @@ export async function GET(
   return NextResponse.json({
     id: poll.id,
     question: poll.question,
-    options: poll.options.map((option) => ({
+    options: poll.options.map((option: { id: string; text: string }) => ({
       id: option.id,
       text: option.text
     }))

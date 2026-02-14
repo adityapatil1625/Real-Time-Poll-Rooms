@@ -23,11 +23,11 @@ export async function GET(
     orderBy: { id: "asc" }
   });
 
-  const total = options.reduce((sum, option) => sum + option._count.votes, 0);
+  const total = options.reduce((sum: number, option: { _count: { votes: number } }) => sum + option._count.votes, 0);
 
   return NextResponse.json({
     total,
-    options: options.map((option) => ({
+    options: options.map((option: { id: string; text: string; _count: { votes: number } }) => ({
       id: option.id,
       text: option.text,
       votes: option._count.votes

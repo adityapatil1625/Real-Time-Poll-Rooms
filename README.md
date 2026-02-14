@@ -20,9 +20,9 @@ I implemented two layers to prevent spam voting:
 Each browser gets a unique ID stored in localStorage. The database has a unique constraint on `(pollId, deviceId)`, so you can't vote twice from the same browser. Yeah, clearing localStorage bypasses this, but it stops casual duplicate voting.
 
 **2. IP rate limiting**  
-The server tracks IPs and blocks repeat votes within 1 hour. Extracts the IP from `x-forwarded-for` headers and checks recent votes in the database. This catches people who clear localStorage and try again.
+The server limits votes per IP to prevent spam. Each IP can cast up to 10 votes per poll, with a 5-minute cooldown between votes. This allows multiple devices on the same WiFi to vote, but prevents someone from rapidly spamming votes.
 
-Downsides: shared WiFi networks might hit the IP limit, and VPNs can bypass it. But for a basic polling app, these two combined work pretty well.
+Downsides: someone with many devices or VPNs could still vote multiple times. But combined with device fingerprinting, it makes casual abuse pretty difficult.
 
 ## Edge cases I handled
 

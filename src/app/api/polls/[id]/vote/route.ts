@@ -4,7 +4,8 @@ import { prisma } from "@/lib/db";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-const COOLDOWN_MS = 60 * 60 * 1000;
+const COOLDOWN_MS = 5 * 60 * 1000; // 5 minutes between votes from same IP
+const MAX_VOTES_PER_IP = 10; // Max votes per IP per poll
 
 function getClientIp(request: Request) {
   const forwarded = request.headers.get("x-forwarded-for");
@@ -54,6 +55,22 @@ export async function POST(
 
   const ip = getClientIp(request);
   if (ip !== "unknown") {
+    // Check rate limit: max votes per IP per poll
+    const ipVoteCount = await prisma.vote.count({
+      where: {
+        pollId: params.id,
+        ip
+      }
+    });
+
+    if (ipVoteCount >= MAX_VOTES_PER_IP) {
+      return NextResponse.json(
+        { error: "Too many votes from this network." },
+        { status: 429 }
+      );
+    }
+
+    // Check cooldown: prevent rapid voting from same IP
     const recentVote = await prisma.vote.findFirst({
       where: {
         pollId: params.id,
@@ -66,7 +83,7 @@ export async function POST(
 
     if (recentVote) {
       return NextResponse.json(
-        { error: "This IP recently voted. Try again later." },
+        { error: "Please wait a few minutes before voting again from this network." },
         { status: 429 }
       );
     }

@@ -18,6 +18,7 @@ export default function HomePage() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [pollId, setPollId] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
 
   const shareUrl = useMemo(() => {
     if (!pollId || typeof window === "undefined") {
@@ -39,6 +40,17 @@ export default function HomePage() {
       return;
     }
     setOptions((prev) => prev.filter((_, idx) => idx !== index));
+  };
+
+  const copyToClipboard = async () => {
+    if (!shareUrl) return;
+    try {
+      await navigator.clipboard.writeText(shareUrl);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch (err) {
+      console.error("Failed to copy:", err);
+    }
   };
 
   const handleSubmit = async () => {
@@ -128,7 +140,12 @@ export default function HomePage() {
         <div className="row">
           <button className="btn secondary" onClick={addOption} type="button">
             Add option
-          </button>
+          </button>row" style={{ alignItems: "center", marginTop: "8px" }}>
+              <div className="muted" style={{ flex: 1, wordBreak: "break-all" }}>{shareUrl}</div>
+              <button className="btn secondary" onClick={copyToClipboard} type="button">
+                {copied ? "Copied!" : "Copy"}
+              </button>
+            
           <button className="btn" onClick={handleSubmit} disabled={loading} type="button">
             {loading ? "Creating..." : "Create poll"}
           </button>

@@ -140,12 +140,7 @@ export default function HomePage() {
         <div className="row">
           <button className="btn secondary" onClick={addOption} type="button">
             Add option
-          </button>row" style={{ alignItems: "center", marginTop: "8px" }}>
-              <div className="muted" style={{ flex: 1, wordBreak: "break-all" }}>{shareUrl}</div>
-              <button className="btn secondary" onClick={copyToClipboard} type="button">
-                {copied ? "Copied!" : "Copy"}
-              </button>
-            
+          </button>
           <button className="btn" onClick={handleSubmit} disabled={loading} type="button">
             {loading ? "Creating..." : "Create poll"}
           </button>
@@ -156,7 +151,12 @@ export default function HomePage() {
         {pollId && (
           <div className="notice">
             <div>Share this link:</div>
-            <div className="muted">{shareUrl}</div>
+            <div className="row" style={{ alignItems: "center", marginTop: "8px" }}>
+              <div className="muted" style={{ flex: 1, wordBreak: "break-all" }}>{shareUrl}</div>
+              <button className="btn secondary" onClick={copyToClipboard} type="button">
+                {copied ? "Copied!" : "Copy"}
+              </button>
+            </div>
           </div>
         )}
       </section>

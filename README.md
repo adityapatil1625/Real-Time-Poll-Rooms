@@ -29,11 +29,31 @@
 4. Start the dev server.
 
 ## Commands
-- `npm install`
-- `npm run prisma:migrate`
+- `npm install` — Install dependencies
+- `npm run prisma:migrate` — Run migrations (local dev)
+- `npm run dev` — Start dev server
 
 ## Deployment (Vercel)
-1. Create a PostgreSQL database (Neon/Supabase).
-2. Set `DATABASE_URL` in Vercel project settings.
-3. Deploy the app.
-- `npm run dev`
+
+### Prerequisites
+1. **Create a PostgreSQL database** (recommended: Neon free tier)
+   - Sign up at [neon.tech](https://neon.tech)
+   - Create a new project and database
+   - Copy the **pooled connection string**
+
+### Deploy Steps
+1. **Push code to GitHub** (already done)
+2. **Import project in Vercel**
+   - Go to [vercel.com](https://vercel.com) and import your GitHub repo
+3. **Set environment variable**
+   - Add `DATABASE_URL` with your Neon pooled connection string
+4. **Deploy**
+   - Vercel will auto-build and deploy
+5. **Run migrations** (first deploy only)
+   - In Vercel project → Settings → Environment Variables, ensure `DATABASE_URL` is set
+   - Locally run: `npm run prisma:deploy` with production `DATABASE_URL` in `.env`
+   - Or use Vercel CLI: `vercel env pull .env.production.local && npm run prisma:deploy`
+
+### Post-Deploy
+- Test poll creation and voting on your live URL
+- Share the link to verify real-time updates work across devices

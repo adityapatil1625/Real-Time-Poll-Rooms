@@ -1,5 +1,7 @@
 # Real-Time Poll Rooms
 
+**Live demo:** https://real-time-poll-rooms-delta.vercel.app/
+
 A live polling app where you can create polls, share links, and watch results update in real-time. Built with Next.js and PostgreSQL.
 
 ## What it does

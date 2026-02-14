@@ -1,59 +1,64 @@
 # Real-Time Poll Rooms
 
-## Features
-- Create polls with a question and multiple options.
-- Shareable poll links.
-- Live results via short polling (auto-refresh every 2s).
-- Two fairness mechanisms: one vote per device ID, and IP cooldown.
-- Persistent storage using PostgreSQL via Prisma.
+A live polling app where you can create polls, share links, and watch results update in real-time. Built with Next.js and PostgreSQL.
 
-## Fairness / Anti-Abuse
-1. One vote per device ID (stored in localStorage and enforced server-side).
-2. IP cooldown (blocks repeat votes from the same IP within 1 hour).
+## What it does
 
-## Edge Cases Handled
-- Empty question or options are rejected.
-- Fewer than two valid options are rejected.
-- Votes for non-existent polls/options are rejected.
-- Duplicate device votes are rejected.
+Create a poll with a question and options, get a shareable link, and anyone can vote. Results update automatically every 2 seconds without page refresh.
 
-## Known Limitations
-- IP-based cooldown can affect users behind shared networks.
-- Short polling is not instant like WebSockets.
-- PostgreSQL is required for production deployments like Vercel.
+## Tech stack
 
-## Getting Started
-1. Copy `.env.example` to `.env` and adjust with your PostgreSQL URL.
-2. Install dependencies.
-3. Run Prisma migrations.
-4. Start the dev server.
+- Next.js 14 + TypeScript
+- PostgreSQL database (via Prisma)
+- Hosted on Vercel
 
-## Commands
-- `npm install` — Install dependencies
-- `npm run prisma:migrate` — Run migrations (local dev)
-- `npm run dev` — Start dev server
+## Anti-abuse mechanisms
 
-## Deployment (Vercel)
+I implemented two layers to prevent spam voting:
 
-### Prerequisites
-1. **Create a PostgreSQL database** (recommended: Neon free tier)
-   - Sign up at [neon.tech](https://neon.tech)
-   - Create a new project and database
-   - Copy the **pooled connection string**
+**1. Device fingerprinting**  
+Each browser gets a unique ID stored in localStorage. The database has a unique constraint on `(pollId, deviceId)`, so you can't vote twice from the same browser. Yeah, clearing localStorage bypasses this, but it stops casual duplicate voting.
 
-### Deploy Steps
-1. **Push code to GitHub** (already done)
-2. **Import project in Vercel**
-   - Go to [vercel.com](https://vercel.com) and import your GitHub repo
-3. **Set environment variable**
-   - Add `DATABASE_URL` with your Neon pooled connection string
-4. **Deploy**
-   - Vercel will auto-build and deploy
-5. **Run migrations** (first deploy only)
-   - In Vercel project → Settings → Environment Variables, ensure `DATABASE_URL` is set
-   - Locally run: `npm run prisma:deploy` with production `DATABASE_URL` in `.env`
-   - Or use Vercel CLI: `vercel env pull .env.production.local && npm run prisma:deploy`
+**2. IP rate limiting**  
+The server tracks IPs and blocks repeat votes within 1 hour. Extracts the IP from `x-forwarded-for` headers and checks recent votes in the database. This catches people who clear localStorage and try again.
 
-### Post-Deploy
-- Test poll creation and voting on your live URL
-- Share the link to verify real-time updates work across devices
+Downsides: shared WiFi networks might hit the IP limit, and VPNs can bypass it. But for a basic polling app, these two combined work pretty well.
+
+## Edge cases I handled
+
+- Empty questions/options get rejected
+- Need at least 2 options to create a poll
+- Voting for non-existent polls returns 404
+- Concurrent votes are handled by Prisma's unique constraints
+- Invalid payloads return proper 400 errors
+
+## What could be better
+
+- Used short polling instead of WebSockets (simpler to deploy, but less efficient)
+- IP blocking affects legitimate users on shared networks
+- No way to close a poll or set expiration
+- Device ID is client-side only, could be server sessions instead
+
+## Running locally
+
+```bash
+# Setup
+cp .env.example .env
+# Add your PostgreSQL connection string to .env
+
+npm install
+npm run prisma:migrate
+npm run dev
+```
+
+Open http://localhost:3000, create a poll, and test voting in different browser tabs.
+
+## Deploying to Vercel
+
+1. Push to GitHub
+2. Import repo in Vercel
+3. Add `DATABASE_URL` environment variable (use Neon's pooled connection string)
+4. Deploy
+5. After first deploy, run `npm run prisma:deploy` locally to set up the database schema
+
+Database: I'm using Neon's free PostgreSQL tier. Works great for this project size.
